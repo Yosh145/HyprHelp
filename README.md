@@ -2,9 +2,9 @@
 
 A lightweight, dependency-free cheatsheet overlay for Hyprland keybinds.
 
-![alt text](image.png)
+![s](image.png)
 
-`hyprhelp` provides a visual reference for your keybindings. It features a "dim-around" effect, interactive locking, and zero-latency startup using standard Python libraries.
+`hyprhelp` parses your `hyprland.conf` to generate a visual reference for your keybindings. It features a "dim-around" effect, interactive locking, auto-detection of your modifier key, and zero-latency startup using standard Python libraries.
 
 ## Prerequisites
 
@@ -15,20 +15,19 @@ You likely already have most of these, but ensure the following are installed:
 * **Tkinter** (Standard Python GUI library)
 
 ```bash
-# Fedora
-sudo dnf install python3-tkinter
-
 # Arch Linux
 sudo pacman -S tk
+
+# Fedora
+sudo dnf install python3-tkinter
 
 # Debian/Ubuntu
 sudo apt install python3-tk
 ```
- 
-## Installation
-    
-Clone the repository (or download the script manually):
 
+## Installation
+
+Clone the repository (or download the script manually):
 ```bash
 git clone https://github.com/Yosh145/HyprHelp.git ~/.config/hypr/scripts/hyprhelp
 ```
@@ -38,67 +37,78 @@ Make the script executable:
 ```bash
 chmod +x ~/.config/hypr/scripts/hyprhelp/hyprhelp.py
 ```
+
 ## Configuration
 
-To make hyprhelp float, center, and look sharp, you need to add specific rules to your hyprland.conf.
+### 1. Window Rules
 
-### Open your config file:
-```bash
-~/.config/hypr/hyprland.conf
-```
-### Add Window Rules
-
-Add the following lines to your Window Rules section. This forces the window to float, center itself, and dims the background behind it.
+To make hyprhelp float, center, and look sharp, add these specific rules to your `~/.config/hypr/hyprland.conf`.
 
 ```conf
 windowrulev2 = float, title:^(hyprhelp)$
 windowrulev2 = center, title:^(hyprhelp)$
-windowrulev2 = size 920 680, title:^(hyprhelp)$
+windowrulev2 = size 600 500, title:^(hyprhelp)$
 windowrulev2 = dimaround, title:^(hyprhelp)$
 windowrulev2 = stayfocused, title:^(hyprhelp)$
 ```
 
-### Fix XWayland Scaling (IMPORTANT)
+### 2. Fix XWayland Scaling (IMPORTANT)
 
-Since this app uses Tkinter (which runs via XWayland), it may look blurry on high-DPI displays unless you disable scaling for XWayland apps.
+> [!IMPORTANT]  
+> Since this app uses Tkinter (which runs via XWayland), it may look blurry on high-DPI displays unless you disable scaling for XWayland apps.
 
 Add this near the top of your config:
+
 ```conf
 xwayland {
   force_zero_scaling = true
 }
 ```
 
-### Add the Keybinding
+### 3. Add the Keybinding
 
-Bind the script to a key (i.e., Super + H). 
+Bind the script to a key (i.e., Super + H).
 
-> [!NOTE] GDK_BACKEND=x11
-> Explicitly set GDK_BACKEND=x11 to ensure maximum compatibility
-
-> Replace `$mainMod` with your MOD key 
+> [!NOTE]  
+> Explicitly set `GDK_BACKEND=x11` to ensure maximum compatibility.
 
 ```conf
 bind = $mainMod, H, exec, env GDK_BACKEND=x11 ~/.config/hypr/scripts/hyprhelp/hyprhelp.py
 ```
 
-## Usage & Customization
-Reload Hyprland
-```bash
-hyprctl reload
+## Dynamic Usage (Recommended)
+
+As of **v1.1.0**, `hyprhelp` automatically reads your `hyprland.conf` file to generate the cheatsheet. You define the **Title** and **Description** directly in your config file using comments.
+
+### Syntax
+
+Add a comment to the end of your bind line in this format:
+`# [Title] Description`
+
+### Example `hyprland.conf`:
+
+```ini
+$mainMod = SUPER
+
+# Define a title inside brackets, followed by the description
+bind = $mainMod, Q, exec, kitty # [Terminal] Launch the terminal
+bind = $mainMod, C, killactive, # [Close] Kill the active window
+bind = $mainMod, F, fullscreen, # [Fullscreen] Toggle fullscreen mode
+
+# You can also bind arrows!
+bind = $mainMod, Up, movewindow, u # [Move Up] Move window up
+
 ```
 
-Press chosen bind (`SUPER + H` default).
+**Reload Hyprland** (`hyprctl reload`) and launch the tool. Your binds will appear automatically.
 
-Hover over keys to see what they do.
+## Manual Configuration (Fallback)
 
-Click a key to "Lock" the description so you can read it without holding the mouse. Click the background to unlock.
+If `hyprhelp` cannot find your config file, or if you prefer to hardcode your cheatsheet, you can edit the `DEFAULT_KEY_MAP` dictionary inside `hyprhelp.py`.
 
-## Editing Keybinds
+Open `hyprhelp.py` and edit the dictionary at the top:
 
-hyprhelp is designed to be simple. To change the keys displayed, open hyprhelp.py and edit the KEY_MAP dictionary at the top of the file:
-
-```Python
+```python
 KEY_MAP = {
     "Q": ("Workspace 1", "Jump to your first desktop"),
     "W": ("My Custom App", "Launches my special script"),
@@ -106,21 +116,96 @@ KEY_MAP = {
 }
 ```
 
+### Sample Empty Keybinds
+
+```python
+KEY_MAP = {
+    # -- Row 1 (Numbers) --
+    "1": ("Workspace 1", ""),
+    "2": ("Workspace 2", ""),
+    "3": ("Workspace 3", ""),
+    "4": ("Workspace 4", ""),
+    "5": ("Workspace 5", ""),
+    "6": ("Workspace 6", ""),
+    "7": ("Workspace 7", ""),
+    "8": ("Workspace 8", ""),
+    "9": ("Workspace 9", ""),
+    "0": ("Workspace 10", ""),
+
+    # -- Row 2 --
+    "Q": ("", ""),
+    "W": ("", ""),
+    "E": ("", ""),
+    "R": ("", ""),
+    "T": ("", ""),
+    "Y": ("", ""),
+    "U": ("", ""),
+    "I": ("", ""),
+    "O": ("", ""),
+    "P": ("", ""),
+    
+    # -- Row 3 --
+    "A": ("", ""),
+    "S": ("", ""),
+    "D": ("", ""),
+    "F": ("", ""),
+    "G": ("", ""),
+    "H": ("", ""),
+    "J": ("", ""),
+    "K": ("", ""),
+    "L": ("", ""),
+    
+    # -- Row 4 --
+    "Z": ("", ""),
+    "X": ("", ""),
+    "C": ("", ""),
+    "V": ("", ""),
+    "B": ("", ""),
+    "N": ("", ""),
+    "M": ("", ""),
+
+    # -- Function Keys --
+    "F1": ("", ""),
+    "F2": ("", ""),
+    "F3": ("", ""),
+    "F4": ("", ""),
+    "F5": ("", ""),
+    "F6": ("", ""),
+    "F7": ("", ""),
+    "F8": ("", ""),
+    "F9": ("", ""),
+    "F10": ("", ""),
+    "F11": ("", ""),
+    "F12": ("", ""),
+
+    # -- Arrow Keys (Unicode symbols) --
+    "↑": ("Up", ""),
+    "↓": ("Down", ""),
+    "←": ("Left", ""),
+    "→": ("Right", ""),
+}
+```
+
 ## Troubleshooting
 
-### The window is blurry / text is huge: 
-Ensure you added xwayland { force_zero_scaling = true } to your hyprland.conf.
+### The window is blurry / text is huge:
 
-### The window doesn't appear: 
+Ensure you added `xwayland { force_zero_scaling = true }` to your `hyprland.conf`.
+
+### The window doesn't appear:
+
 Run the script manually in your terminal to check for errors:
+
 ```bash
 env GDK_BACKEND=x11 ~/.config/hypr/scripts/hyprhelp/hyprhelp.py
 ```
 
-#### If it crashes with ModuleNotFoundError, you are missing the tkinter package (see Prerequisites).
+*If it crashes with `ModuleNotFoundError`, you are missing the `tkinter` package (see Prerequisites).*
+
+### My binds aren't showing up:
+
+1. Ensure your config comments follow the format `# [Title] Description`.
+2. Ensure you are using the variable `$mainMod` or the string `SUPER` in your bind definition.
 
 ## License
-
-the idgaf one??
-
-prob MIT idk
+MIT License (Do whatever you want with it).
